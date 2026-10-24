@@ -1272,9 +1272,19 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border: 0; bo
       <p class="explain">Die Datei ist auf höchstens 3000 Punkte vereinfacht und enthält Höhendaten.</p>
     </details>
 
+    <details class="block fold" id="dataSec">
+      <summary class="block-head"><h2>Daten sichern</h2><svg class="chev"><use href="#i-chev"/></svg></summary>
+      <p class="explain">Lieblingswege, gemerkte Routen und Einstellungen liegen nur auf diesem Gerät. Sichere sie als Datei, bevor du das Gerät oder die Adresse der App wechselst, und spiel sie dort wieder ein. Vorhandenes bleibt dabei erhalten.</p>
+      <div class="group">
+        <button type="button" class="row row-line btn-row" id="dataExport">Daten sichern</button>
+        <label class="row row-line btn-row" for="dataFile">Sicherung einspielen<input id="dataFile" type="file" accept=".json,application/json" hidden></label>
+      </div>
+    </details>
+
     <footer class="foot">
       <p>Routing <a href="https://brouter.de" target="_blank" rel="noopener">BRouter</a> · Karte © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende · Wetter <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> · Kacheln openstreetmap.de, CyclOSM, OpenTopoMap, Esri · Overpass · Photon</p>
       <p>Matsch, Schnee und Glätte sind Schätzungen aus Wetter- und Kartendaten. Vor Ort zählt der eigene Blick.</p>
+      <p>Wetterwege · Version 0.2.0</p>
     </footer>
   </div>
 </aside>
@@ -3634,6 +3644,50 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border: 0; bo
     finally { R.busy = false; $('goBtn').disabled = false; updateMoreBtn(); setTimeout(() => setProgress(0), 800); }
   }
   $('favFile').addEventListener('change', (e) => { const fl = [...e.target.files]; e.target.value = ''; if (fl.length) importFavs(fl); });
+
+  // ---------- Daten sichern und einspielen ----------
+  const DATA_KEYS = ['ww:v1', 'ww:favs', 'ww:saved', 'ww:recent', 'ww:layer'];
+  function exportData() {
+    const data = {};
+    DATA_KEYS.forEach((k) => { const v = store.get(k, undefined); if (v !== undefined) data[k] = v; });
+    const body = JSON.stringify({ app: 'wetterwege', format: 1, exported: new Date().toISOString(), data });
+    const file = `wetterwege-sicherung-${new Date().toISOString().slice(0, 10)}.json`;
+    if (useShare()) {
+      try {
+        const f = new File([body], file, { type: 'application/json' });
+        if (navigator.canShare && navigator.canShare({ files: [f] })) {
+          navigator.share({ files: [f], title: 'Wetterwege-Sicherung' }).then(() => toast('Gesichert. Am besten „In Dateien sichern“ wählen.')).catch((e) => {
+            if (e && e.name === 'AbortError') return;
+            downloadText(file, body, 'application/json'); toast(`${file} gespeichert.`);
+          });
+          return;
+        }
+      } catch (e) { /* weiter mit Download */ }
+    }
+    downloadText(file, body, 'application/json'); toast(`${file} gespeichert.`);
+  }
+  async function importData(fileObj) {
+    let j = null;
+    try { j = JSON.parse(await fileObj.text()); } catch (e) { j = null; }
+    if (!j || j.app !== 'wetterwege' || !j.data || typeof j.data !== 'object') { toast('Das ist keine Wetterwege-Sicherung.'); return; }
+    const d = j.data; let added = 0, full = false;
+    const mergeById = (k) => {
+      if (!Array.isArray(d[k])) return;
+      const cur = store.get(k, []); const ids = new Set(cur.map((x) => x && x.id));
+      const add = d[k].filter((x) => x && x.id && !ids.has(x.id));
+      if (!add.length) return;
+      if (store.set(k, cur.concat(add))) added += add.length; else full = true;
+    };
+    mergeById('ww:favs'); mergeById('ww:saved');
+    if (d['ww:v1'] && typeof d['ww:v1'] === 'object') store.set('ww:v1', d['ww:v1']);
+    if (typeof d['ww:layer'] === 'string') store.set('ww:layer', d['ww:layer']);
+    if (Array.isArray(d['ww:recent'])) store.set('ww:recent', d['ww:recent']);
+    toast(full ? 'Der Speicher ist voll, nicht alles wurde übernommen. Lösch ein paar gemerkte Routen und versuch es noch einmal.'
+      : `Eingespielt: ${added} ${added === 1 ? 'Weg oder Route' : 'Wege und Routen'} neu, Einstellungen übernommen. Die App lädt neu.`);
+    if (!full) setTimeout(() => location.reload(), 1800);
+  }
+  $('dataExport').addEventListener('click', exportData);
+  $('dataFile').addEventListener('change', (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) importData(f); });
   $('favList').addEventListener('click', (e) => {
     const c = e.target.closest('[data-favcheck]'); if (c) { checkFav(c.dataset.favcheck); return; }
     const d = e.target.closest('[data-favdel]'); if (d) { store.set('ww:favs', getFavs().filter((x) => x.id !== d.dataset.favdel)); favCache = null; renderFavs(); }
