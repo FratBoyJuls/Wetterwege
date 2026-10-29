@@ -12,8 +12,10 @@ Dazu Formen-Routen (Herz, Tiere, Schrift), GPX für die COROS-Uhr und eine Ablag
   beim nächsten Öffnen.
 - **Daten** (gespeicherte Routen, Lieblingswege, Einstellungen) liegen nur auf dem jeweiligen Gerät. Vor einem
   Handywechsel oder Adresswechsel: Einstellungen → „Daten sichern“, auf dem neuen Gerät „Sicherung einspielen“.
-- **Test-Stand:** Neues landet zuerst auf dem Branch `vorschau`. Cloudflare zeigt ihn unter einer eigenen Adresse
-  (Cloudflare → Workers → wetterwege → „Deployments“). Dort sind die Daten leer, weil es eine andere Adresse ist.
+- **Zurück zur letzten Version:** Cloudflare → Workers & Pages → wetterwege → „Deployments“ → beim älteren Eintrag
+  „…“ → „Rollback“.
+- **Wer sieht meine Daten?** Niemand außer dir. Alles liegt nur im Browser deines Geräts, nichts geht an einen Server.
+  Wer die Adresse öffnet, bekommt eine leere App.
 
 ## Aufbau
 ```
