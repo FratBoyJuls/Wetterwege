@@ -1,0 +1,4 @@
+test/node_modules
+test/out/
+.wrangler/
+__pycache__/

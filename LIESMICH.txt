@@ -1,19 +1,10 @@
-Wetterwege – so kommt die App aufs Handy (kostenlos, ca. 10 Minuten)
+Wetterwege – so kommt die App aufs Handy
 
-1. Auf github.com ein kostenloses Konto anlegen (falls noch keins da ist).
-2. Oben rechts auf „+“ → „New repository“.
-   Name: wetterwege · Sichtbarkeit: Public · „Create repository“.
-3. Auf der leeren Seite „uploading an existing file“ anklicken.
-   ALLE Dateien aus diesem Ordner (nicht den Ordner selbst) hineinziehen → „Commit changes“.
-4. Im Repository: „Settings“ → links „Pages“.
-   Source: „Deploy from a branch“ · Branch: „main“ · Ordner: „/ (root)“ → „Save“.
-5. 1–2 Minuten warten. Oben auf der Pages-Seite erscheint der Link:
-   https://DEIN-NAME.github.io/wetterwege/
-6. iPhone: Link in Safari öffnen → Teilen-Symbol → „Zum Home-Bildschirm“.
-   Android: Link in Chrome öffnen → Menü (⋮) → „App installieren“.
+1. https://wetterwege.klaercreative.workers.dev in Safari öffnen.
+2. Teilen-Symbol → „Zum Home-Bildschirm“.
+   (Android: in Chrome öffnen → Menü ⋮ → „App installieren“.)
 
-Update auf eine neue Version: im Repository „Add file“ → „Upload files“ → neue index.html hochladen → „Commit changes“.
-Die App holt sich die neue Version beim nächsten Öffnen automatisch.
+Updates kommen automatisch: Die App holt sich die neue Version beim nächsten Öffnen.
 
-Hinweis: Die Seite ist öffentlich erreichbar, aber niemand kennt den Link. Deine Einstellungen,
-Lieblingswege und gemerkten Routen bleiben nur auf deinem Gerät.
+Deine Einstellungen, Lieblingswege und gespeicherten Routen bleiben nur auf deinem Gerät.
+Vor einem Handywechsel: Einstellungen → „Daten sichern“, auf dem neuen Handy „Sicherung einspielen“.

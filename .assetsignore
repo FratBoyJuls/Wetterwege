@@ -1,4 +1,12 @@
 .git
 .assetsignore
+.gitignore
 CHANGELOG.md
 LIESMICH.txt
+README.md
+build.py
+src
+test
+vendor
+wrangler.jsonc
+.wrangler

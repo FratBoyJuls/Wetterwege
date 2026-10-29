@@ -1,0 +1,6 @@
+// Cloudflare Worker mit statischen Dateien. Veröffentlicht wird der Hauptordner (ohne die Einträge in .assetsignore).
+{
+  "name": "wetterwege",
+  "compatibility_date": "2026-10-01",
+  "assets": { "directory": "." }
+}

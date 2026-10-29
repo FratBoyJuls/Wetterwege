@@ -1,0 +1,12 @@
+{
+  "name": "wetterwege-tests",
+  "private": true,
+  "description": "Tests für Wetterwege. Unit-Tests brauchen nichts, der Oberflächen-Test braucht Playwright.",
+  "scripts": {
+    "test": "node --test unit.test.js",
+    "ui": "node ui.test.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  }
+}
