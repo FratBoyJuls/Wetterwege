@@ -80,7 +80,7 @@
   $('destInput').addEventListener('focus', () => { R.pickDest = true; });
   $('startInput').addEventListener('focus', () => { R.pickDest = false; });
   $('whenRow').addEventListener('click', () => pushView('weather'));
-  $('wxCard').addEventListener('click', () => pushView('weather'));
+  $('wxCard').addEventListener('click', () => { if (!R.wx && !R.wxLoading) { loadWeather(true); return; } pushView('weather'); });
   $('wxPill').addEventListener('click', () => pushView('weather'));
   $('settingsBtn').addEventListener('click', () => pushView('settings'));
   document.querySelectorAll('[data-back]').forEach((b) => b.addEventListener('click', popView));
@@ -205,7 +205,8 @@
   });
   matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { applyTheme(); if (!S.theme && R.sel >= 0 && curView() === 'results') { drawRoutes(); renderVariants(); } });
   setInterval(() => { if (R.wx && Date.now() - R.wx.fetched > 25 * 60e3) loadWeather(true); else if (R.wx) refreshConditions(); }, 10 * 60e3);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && R.wx && Date.now() - R.wx.fetched > 25 * 60e3) loadWeather(true); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && (!R.wx || Date.now() - R.wx.fetched > 25 * 60e3)) loadWeather(true); });
+  window.addEventListener('online', () => { if (!R.wx) loadWeather(true); });
 
   // ---------- Start ----------
   renderPlan();

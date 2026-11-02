@@ -66,7 +66,7 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html { background: var(--bg); height: 100%; }
 /* body fixiert: verhindert Gummiband-Scrollen und Zoomen der ganzen Seite */
-body { position: fixed; inset: 0; height: var(--app-h, 100%); margin: 0; overflow: hidden; overscroll-behavior: none; background: var(--bg); color: var(--label); font: 16px/1.35 var(--font); -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; touch-action: pan-x pan-y; -webkit-text-size-adjust: 100%; }
+body { position: fixed; inset: 0; height: var(--paint-h, var(--app-h, 100%)); margin: 0; overflow: hidden; overscroll-behavior: none; background: var(--bg); color: var(--label); font: 16px/1.35 var(--font); -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; touch-action: pan-x pan-y; -webkit-text-size-adjust: 100%; }
 button, input, select { font: inherit; color: inherit; letter-spacing: inherit; }
 button { cursor: pointer; touch-action: manipulation; }
 input, select, textarea { font-size: 16px; } /* unter 16 px zoomt iOS beim Antippen */
@@ -78,7 +78,7 @@ a { color: var(--accent); text-decoration: none; }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .glass { background: var(--glass-strong); } }
 
 /* ---------- Karte ---------- */
-.map-wrap { position: fixed; left: 0; right: 0; top: 0; height: var(--app-h, 100%); }
+.map-wrap { position: fixed; left: 0; right: 0; top: 0; height: var(--paint-h, var(--app-h, 100%)); }
 #map { position: absolute; inset: 0; background: var(--bg); }
 .leaflet-container { font-family: var(--font); background: var(--bg); }
 .map-wrap:not(.sat) .leaflet-tile-pane { filter: saturate(0.82); }
@@ -509,3 +509,8 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border: 0; bo
 .headline.bad { background: color-mix(in srgb, var(--red) 15%, transparent); }
 .headline.snow { background: color-mix(in srgb, var(--cyan) 18%, transparent); }
 .slider-row.off { opacity: 0.4; pointer-events: none; }
+
+/* Unter dem Sheet nie einen leeren Streifen zeigen: Sheet-Fläche nach unten verlängern */
+@media (max-width: 760px) {
+  .sheet.glass { box-shadow: var(--shadow), 0 400px 0 0 var(--glass-strong); }
+}

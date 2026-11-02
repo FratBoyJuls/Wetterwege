@@ -16,7 +16,7 @@
   const compass = (d) => COMPASS[Math.round(((d % 360) + 360) % 360 / 45) % 8];
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const parseNum = (v) => parseFloat(String(v).replace(',', '.'));
-  const VERSION = '0.3.0';
+  const VERSION = '0.3.1';
 
   // ---------- Speicher (kleine Einstellungen) ----------
   const store = {
@@ -50,14 +50,26 @@
   // ---------- Bildschirmhöhe: kein schwarzer Rand, kein Zoomen ----------
   const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const standalone = () => navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+  // Höhe des großen Viewports (ohne eingeblendete Leisten) messen
+  const lvhProbe = document.createElement('div');
+  lvhProbe.style.cssText = 'position:fixed;top:0;left:-9px;width:1px;height:100vh;height:100lvh;visibility:hidden;pointer-events:none';
+  document.documentElement.appendChild(lvhProbe);
   function setAppH() {
     let h = window.innerHeight;
-    // iOS-Homescreen-App: innerHeight ist dort manchmal zu klein, darunter bleibt ein schwarzer Streifen
-    if (isIOS && standalone()) {
-      const land = window.innerWidth > window.innerHeight;
-      h = Math.max(h, land ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height));
+    const big = lvhProbe.offsetHeight || 0;
+    // Homescreen-App: Es gibt keine Browser-Leisten, also die ganze Bildschirmhöhe nutzen.
+    // iOS meldet dort manchmal eine zu kleine innerHeight, darunter bliebe ein leerer Streifen.
+    if (standalone()) {
+      h = Math.max(h, big);
+      if (isIOS) {
+        const land = window.innerWidth > window.innerHeight;
+        h = Math.max(h, land ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height));
+      }
     }
-    document.documentElement.style.setProperty('--app-h', h + 'px');
+    const st = document.documentElement.style;
+    st.setProperty('--app-h', h + 'px');
+    // Hintergrund und Karte reichen immer bis ganz nach unten, auch unter eingeblendete Leisten
+    st.setProperty('--paint-h', Math.max(h, big, window.innerHeight) + 'px');
   }
   setAppH();
   window.addEventListener('resize', setAppH);
@@ -242,14 +254,30 @@
     const hv = 'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,precipitation_probability,snowfall,snow_depth,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,soil_moisture_0_to_1cm,et0_fao_evapotranspiration,uv_index,is_day';
     const u1 = `https://api.open-meteo.com/v1/forecast?${base}&hourly=${hv}&daily=sunrise,sunset&past_days=4&forecast_days=3&wind_speed_unit=kmh`;
     const u2 = `https://air-quality-api.open-meteo.com/v1/air-quality?${base}&hourly=alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,ragweed_pollen&forecast_days=3`;
+    clearTimeout(R.wxRetryT);
+    R.wxLoading = true; renderWxSummary();
     try {
-      const [r1, r2] = await Promise.allSettled([fetchT(u1, {}, 15000).then((r) => r.json()), fetchT(u2, {}, 15000).then((r) => r.json())]);
-      if (r1.status !== 'fulfilled' || r1.value.error) throw new Error(r1.reason ? r1.reason.message : r1.value.reason);
-      R.wx = C.parseWeather(r1.value, r2.status === 'fulfilled' && !r2.value.error ? r2.value : null);
-      R.wxKey = key; R.wxErr = '';
+      const aq = fetchT(u2, {}, 15000).then((r) => r.json()).catch(() => null);
+      let j = null, last = null;
+      // zwei Versuche, beim zweiten mit 3 statt 4 Tagen Vergangenheit
+      for (const u of [u1, u1.replace('past_days=4', 'past_days=3')]) {
+        try {
+          const r = await fetchT(u, {}, 20000);
+          const body = await r.json().catch(() => null);
+          if (!r.ok || !body || body.error) throw new Error(body && body.reason ? body.reason : `Wetterdienst antwortet mit Fehler ${r.status}`);
+          j = body; break;
+        } catch (e) { last = e; }
+      }
+      if (!j) throw last;
+      const q = await aq;
+      R.wx = C.parseWeather(j, q && !q.error ? q : null);
+      R.wxKey = key; R.wxErr = ''; R.wxTries = 0;
     } catch (e) {
       R.wx = null; R.cond = null; R.wxErr = e.message || 'nicht erreichbar';
-    }
+      // automatisch nochmal versuchen: nach 10 s, 30 s, dann jede Minute
+      R.wxTries = (R.wxTries || 0) + 1;
+      R.wxRetryT = setTimeout(() => loadWeather(true), [10, 30][R.wxTries - 1] * 1000 || 60000);
+    } finally { R.wxLoading = false; }
     refreshConditions();
     return R.wx;
   }
@@ -283,8 +311,8 @@
       pill.innerHTML = '<span class="wx-temp">–</span>';
       $('wxCardIcon').className = 'wx-card-icon';
       $('wxCardIcon').innerHTML = '<svg><use href="#i-cloud"/></svg>';
-      $('wxCardTitle').textContent = R.wxErr ? 'Wetter nicht erreichbar' : 'Wetter wird geladen…';
-      $('wxCardSub').textContent = R.wxErr ? 'Routen werden ohne Wetteranpassung berechnet.' : '';
+      $('wxCardTitle').textContent = R.wxLoading || !R.wxErr ? 'Wetter wird geladen…' : 'Wetter gerade nicht erreichbar';
+      $('wxCardSub').textContent = R.wxLoading || !R.wxErr ? '' : `${R.wxErr}. Die App versucht es gleich nochmal, oder hier tippen.`;
       $('whenShort').textContent = 'jetzt';
       return;
     }

@@ -1,5 +1,11 @@
 # Änderungen
 
+## 0.3.1 · 02.11.2026
+- Behoben: Schlug das Laden des Wetters einmal fehl (z. B. beim Öffnen aus dem Hintergrund), blieb „Wetter nicht
+  erreichbar“ stehen. Jetzt versucht die App es automatisch erneut (nach 10 s, 30 s, dann jede Minute), beim
+  Zurückkehren in die App und per Tippen auf die Wetterkarte. Der Grund wird angezeigt.
+- Behoben: leerer Streifen unter dem Panel am iPhone
+
 ## 0.3.0 · 29.10.2026
 - Neu aufgebaut im Apple-Stil: Bereiche „Runde · Form · Gespeichert“, Seiten mit Zurück-Pfeil, Panel wie in Apple Karten
 - Behoben: schwarzer Streifen unten in der Homescreen-App, ungewolltes Zoomen der Seite
